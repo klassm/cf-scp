@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Usage: cf-scp $APP_NAME $FROM $TO
+APP_ID=$(cf app $1 --guid)
+SSH_ENDPOINT=$(cf curl /v2/info | jq --raw-output .app_ssh_endpoint)
+SSH_ENDPOINT_WITHOUT_PORT=${SSH_ENDPOINT%:*}
+SSH_CODE=$(cf ssh-code)
+
+echo "One time password is '${SSH_CODE}'"
+echo "${SSH_CODE}" | pbcopy
+
+scp -P 2222 -o User=cf:${APP_ID}/0 $2 $SSH_ENDPOINT_WITHOUT_PORT:$3
