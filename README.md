@@ -5,15 +5,22 @@ Script to copy data via scp to CloudFoundry instances. This follows the [officia
 
 ### Usage
 
-```cf-scp $APP_NAME $SOURCE $TARGET```
+```
+# cf-scp $APP_NAME:$SOURCE $TARGET
+cf-scp my_fancy_app:/tmp/data.json /tmp/data.json
+```
 
-Example:
+You can also copy the other way round:
 
-```cf-scp my_fancy_app /tmp/data.json /tmp/data.json```
+```
+# cf-scp $SOURCE $APP_NAME:$TARGET
+cf-scp /tmp/data.json my_fancy_app:/tmp/data.json
+```
+
 
 Required tools:
 
-* cf-cli
-* jq
-* pbcopy (for putting the one time access code to the clipboard)
+* Node.js
 * scp
+* sshpass
+* CloudFondry CLI

@@ -1,8 +1,48 @@
-#!/usr/bin/env bash
-# Usage: cf-scp $APP_NAME $FROM $TO
-APP_ID=$(cf app $1 --guid)
-SSH_ENDPOINT=$(cf curl /v2/info | jq --raw-output .app_ssh_endpoint)
-SSH_ENDPOINT_WITHOUT_PORT=${SSH_ENDPOINT%:*}
-SSH_CODE=$(cf ssh-code)
+#!/usr/bin/env node
+const {execSync} = require("child_process");
+const process = require("process");
 
-sshpass -p "${SSH_CODE}" scp -P 2222 -o User=cf:${APP_ID}/0 $2 $SSH_ENDPOINT_WITHOUT_PORT:$3
+function exec(command) {
+  return execSync(command).toString().trim();
+}
+
+function parsePath(input) {
+  if (input.includes(":")) {
+    const [appName, path] = input.split(":");
+    return { appName, path, type: 'remote' };
+  }
+  return { path: input, type: 'local' };
+}
+
+function getAppId(fromConfig, toConfig) {
+  const appName = fromConfig.appName ?? toConfig.appName;
+  return exec(`cf app ${appName} --guid`);
+}
+
+const from = process.argv[2];
+const to = process.argv[3];
+const fromConfig = parsePath(from);
+const toConfig = parsePath(to);
+
+if (fromConfig.type === toConfig.type) {
+  console.log("One config must be local and one must be remote!");
+  process.exit(1);
+}
+
+const appId = getAppId(fromConfig, toConfig);
+const sshEndpoint = exec("cf curl /v2/info | jq --raw-output .app_ssh_endpoint");
+const sshEndpointWithoutPort = sshEndpoint.split(":")[0];
+const sshCode = exec("cf ssh-code");
+
+console.table({
+  from,
+  to,
+  appId,
+  sshEndpoint,
+  sshCode
+})
+
+const srcDest = fromConfig.type === 'local'
+    ? `${fromConfig.path} ${sshEndpointWithoutPort}:${toConfig.path}`
+    : `${sshEndpointWithoutPort}:${fromConfig.path} ${toConfig.path}`
+console.log(exec(`sshpass -p "${sshCode}" scp -P 2222 -o User=cf:${appId}/0 ${srcDest}`));
