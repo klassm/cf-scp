@@ -45,4 +45,4 @@ console.table({
 const srcDest = fromConfig.type === 'local'
     ? `${fromConfig.path} ${sshEndpointWithoutPort}:${toConfig.path}`
     : `${sshEndpointWithoutPort}:${fromConfig.path} ${toConfig.path}`
-console.log(exec(`sshpass -p "${sshCode}" scp -P 2222 -o User=cf:${appId}/0 ${srcDest}`));
+console.log(exec(`sshpass -v -p${sshCode} scp -P 2222 -o User=cf:${appId}/0 ${srcDest}`));
