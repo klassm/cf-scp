@@ -23,4 +23,4 @@ Required tools:
 * Node.js
 * scp
 * sshpass
-* CloudFondry CLI
+* CloudFoundry CLI
