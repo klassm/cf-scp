@@ -21,7 +21,6 @@ cf-scp /tmp/data.json my_fancy_app:/tmp/data.json
 Required tools:
 
 * Node.js
-* jq
 * scp
 * sshpass
 * CloudFondry CLI

@@ -35,6 +35,23 @@ async function getAppId(fromConfig, toConfig) {
   return run(`cf app ${appName} --guid`);
 }
 
+function tryParseJson(json) {
+  try {
+    return JSON.parse(json);
+  } catch(e) {
+    throw new Error(`Cannot parse json: ${e.message}\n${json}`)
+  }
+}
+
+function extractSshEndpoint(v2Info) {
+  const json = tryParseJson(v2Info);
+  const appSshEndpoint = json?.app_ssh_endpoint;
+  if (!appSshEndpoint) {
+    throw new Error(`Could not extract app_ssh_endpoint from /v2/info:\n${v2Info}`);
+  }
+  return appSshEndpoint;
+}
+
 async function execute() {
   const from = process.argv[2];
   const to = process.argv[3];
@@ -46,13 +63,14 @@ async function execute() {
     process.exit(1);
   }
 
-  const [appId, sshEndpoint, sshCode] = await Promise.all(
+  const [appId, v2Info, sshCode] = await Promise.all(
       [
         getAppId(fromConfig, toConfig),
-        run("cf curl /v2/info | jq --raw-output .app_ssh_endpoint"),
+        run("cf curl /v2/info"),
         run("cf ssh-code")
       ]
   );
+  const sshEndpoint = extractSshEndpoint(v2Info);
   const sshEndpointWithoutPort = sshEndpoint.split(":")[0];
 
   console.table({
