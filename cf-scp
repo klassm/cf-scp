@@ -84,7 +84,7 @@ async function execute() {
   const srcDest = fromConfig.type === 'local'
       ? `${fromConfig.path} ${sshEndpointWithoutPort}:${toConfig.path}`
       : `${sshEndpointWithoutPort}:${fromConfig.path} ${toConfig.path}`
-  const command = `sshpass -p${sshCode} scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -O -P 2222 -o User=cf:${appId}/0 ${srcDest}`;
+  const command = `sshpass -p${sshCode} scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P 2222 -o User=cf:${appId}/0 ${srcDest}`;
   console.log(await run(command));
   console.log("🚀Done 🚀");
 }
