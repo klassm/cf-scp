@@ -8,12 +8,12 @@ async function run(command) {
     exec(command, (err, stdout, stderr) => {
       if (err) {
         if (stdout) {
-          console.log(stdout);
+          console.log("stdout", stdout);
         }
         if (stderr) {
-          console.error(stderr);
+          console.log(stderr);
         }
-        console.error(err);
+        console.log("err", err);
         reject(err);
       } else {
         resolve(stdout.trim());
@@ -63,13 +63,13 @@ async function execute() {
     process.exit(1);
   }
 
-  const [appId, v2Info, sshCode] = await Promise.all(
+  const [appId, v2Info] = await Promise.all(
       [
         getAppId(fromConfig, toConfig),
         run("cf curl /v2/info"),
-        run("cf ssh-code")
       ]
   );
+  const sshCode = await run('cf ssh-code');
   const sshEndpoint = extractSshEndpoint(v2Info);
   const sshEndpointWithoutPort = sshEndpoint.split(":")[0];
 
@@ -84,7 +84,7 @@ async function execute() {
   const srcDest = fromConfig.type === 'local'
       ? `${fromConfig.path} ${sshEndpointWithoutPort}:${toConfig.path}`
       : `${sshEndpointWithoutPort}:${fromConfig.path} ${toConfig.path}`
-  const command = `sshpass -p${sshCode} scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P 2222 -o User=cf:${appId}/0 ${srcDest}`;
+  const command = `sshpass -p${sshCode} scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts -P 2222 -o User=cf:${appId}/0 ${srcDest}`;
   console.log(await run(command));
   console.log("🚀Done 🚀");
 }
